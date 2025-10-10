@@ -1,6 +1,7 @@
 import { Usuario } from "../models/usuarioModel.js";
 
 export const criarUsuario = async (req, res) => {
+  console.log("REQ BODY:", req.body);
   try {
     const { nome, telefone, data_nascimento } = req.body;
     if (!nome || !telefone || !data_nascimento) {
