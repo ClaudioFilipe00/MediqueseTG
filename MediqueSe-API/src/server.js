@@ -10,11 +10,10 @@ import "./models/medicamentoModel.js";
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// Rotas principais
 app.use("/usuarios", usuarioRoutes);
 app.use("/medicamentos", medicamentoRoutes);
 app.use("/consumo", consumoRoutes);
+app.get("/ping", (req, res) => res.send("pong"));
 
 // Rota de teste para verificar acesso do celular
 app.get("/rota-de-teste", (req, res) => {
