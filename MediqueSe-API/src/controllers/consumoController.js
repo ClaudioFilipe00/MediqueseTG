@@ -12,19 +12,12 @@ export const registrarConsumo = async (req, res) => {
     const med = await Medicamento.findByPk(medicamentoId);
     if (!med) return res.status(404).json({ error: "Medicamento não encontrado" });
 
-    const dataAtual = new Date();
-    const data = new Date(
-      dataAtual.getFullYear(),
-      dataAtual.getMonth(),
-      dataAtual.getDate(),
-      Number(horario.split(":")[0]),
-      Number(horario.split(":")[1]),
-      0,
-      0
-    );
+    const data = new Date();
+    const [h, m] = horario.split(":").map(Number);
+    data.setHours(h, m, 0, 0);
 
-    const inicioIntervalo = new Date(data.getTime() - 5 * 60 * 1000); // 5 minutos antes
-    const fimIntervalo = new Date(data.getTime() + 5 * 60 * 1000); // 5 minutos depois
+    const inicioIntervalo = new Date(data.getTime() - 5 * 60 * 1000);
+    const fimIntervalo = new Date(data.getTime() + 5 * 60 * 1000);
 
     const existente = await Consumo.findOne({
       where: {
@@ -34,11 +27,8 @@ export const registrarConsumo = async (req, res) => {
     });
 
     if (existente) {
-      if (existente.status === status)
-        return res.status(200).json({ message: "Registro já existente.", existente });
-
-      await existente.update({ status });
-      return res.status(200).json({ message: "Status atualizado.", existente });
+      if (existente.status !== status) await existente.update({ status });
+      return res.status(200).json(existente);
     }
 
     const novo = await Consumo.create({ medicamentoId, status, dataHora: data });
