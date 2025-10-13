@@ -12,7 +12,6 @@ export const registrarConsumo = async (req, res) => {
     const med = await Medicamento.findByPk(medicamentoId);
     if (!med) return res.status(404).json({ error: "Medicamento não encontrado" });
 
-    // Garante que o registro seja do mesmo horário e mesmo dia
     const agora = new Date();
     const [h, m] = horario.split(":").map(Number);
     const dataAlvo = new Date(
