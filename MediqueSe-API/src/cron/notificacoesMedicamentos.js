@@ -1,26 +1,29 @@
 // src/cron/notificacoesMedicamentos.js
 import cron from "node-cron";
-import { Medicamento } from "../models/medicamentoModel.js";
 import { enviarNotificacao } from "../controllers/pushController.js";
+import { Medicamento } from "../models/medicamentoModel.js";
+import { PushToken } from "../models/pushTokenModel.js";
 
-// Roda a cada minuto
 cron.schedule("* * * * *", async () => {
   const agora = new Date();
   const hora = agora.getHours();
-  const minuto = agora.getMinutes();
+  const min = agora.getMinutes();
 
-  const meds = await Medicamento.findAll();
-  meds.forEach((med) => {
-    const horarios = med.horarios ? JSON.parse(med.horarios) : [];
-    horarios.forEach(async (hStr) => {
-      const [h, m] = hStr.split(":").map(Number);
-      if (h === hora && m === minuto) {
-        await enviarNotificacao({
-          telefone: med.usuarioTelefone,
-          titulo: `Hora da medicação: ${med.nome}`,
-          corpo: `Dose: ${med.dose} ${med.tipo}`,
-        });
-      }
-    });
+  const meds = await Medicamento.findAll({
+    include: [{ model: PushToken }],
   });
+
+  for (const med of meds) {
+    const horarios = Array.isArray(med.horarios) ? med.horarios : [];
+    for (const h of horarios) {
+      const [hh, mm] = h.split(":").map(Number);
+      if (hh === hora && mm === min && med.PushToken?.token) {
+        await enviarNotificacao(
+          med.PushToken.token,
+          `Hora da medicação: ${med.nome}`,
+          `Dose: ${med.dose} ${med.tipo}`
+        );
+      }
+    }
+  }
 });

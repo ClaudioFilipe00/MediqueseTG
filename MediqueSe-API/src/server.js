@@ -8,6 +8,7 @@ import pushRoutes from "./routes/pushRoutes.js";
 import "./models/usuarioModel.js";
 import "./models/medicamentoModel.js";
 import "./cron/notificacoesMedicamentos.js";
+import "./models/pushTokenModel.js";
 
 
 const app = express();
