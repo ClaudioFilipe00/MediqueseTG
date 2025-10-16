@@ -1,4 +1,4 @@
-import { PushToken } from "../models/pushTokenModel.js"; // modelo com telefone + token
+import { PushToken } from "../models/pushTokenModel.js";
 import axios from "axios";
 
 export const registerPushToken = async (req, res) => {
@@ -6,7 +6,7 @@ export const registerPushToken = async (req, res) => {
   if (!telefone || !token) return res.status(400).send("Telefone ou token faltando");
 
   try {
-    await PushToken.upsert({ telefone, token }); // cria ou atualiza
+    await PushToken.upsert({ telefone, token });
     res.send("Token registrado");
   } catch (err) {
     console.error(err);
