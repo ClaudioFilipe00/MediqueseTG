@@ -19,6 +19,7 @@ export const criarUsuario = async (req, res) => {
   }
 };
 
+// Rota usada para login pelo telefone
 export const obterUsuarioPorTelefone = async (req, res) => {
   try {
     const { telefone } = req.params;
