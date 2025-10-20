@@ -12,9 +12,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Definição das associações
 
-// Relacionamento Consumo  Usuario
+Usuario.hasMany(Medicamento, {
+  foreignKey: "usuarioId",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+Medicamento.belongsTo(Usuario, {
+  foreignKey: "usuarioId",
+});
+
+
 Usuario.hasMany(Consumo, {
   foreignKey: "usuarioTelefone",
   sourceKey: "telefone",
@@ -26,17 +34,14 @@ Consumo.belongsTo(Usuario, {
   targetKey: "telefone",
 });
 
-// Relacionamento Consumo  Medicamento
 Medicamento.hasMany(Consumo, {
   foreignKey: "medicamentoId",
-  onDelete: "SET NULL",
+  onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
 Consumo.belongsTo(Medicamento, {
   foreignKey: "medicamentoId",
 });
-
-// Rotas
 
 app.use("/usuarios", usuarioRoutes);
 app.use("/medicamentos", medicamentoRoutes);
