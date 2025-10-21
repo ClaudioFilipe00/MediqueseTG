@@ -1,4 +1,5 @@
 import { Consumo } from "../models/consumoModel.js";
+import { Medicamento } from "../models/medicamentoModel.js";
 
 export const registrarConsumo = async (req, res) => {
   try {
@@ -19,9 +20,27 @@ export const listarConsumoPorUsuario = async (req, res) => {
     const { usuarioTelefone } = req.params;
     const consumos = await Consumo.findAll({
       where: { usuarioTelefone },
+      include: [
+        {
+          model: Medicamento,
+          required: false, // permite null se o medicamento foi deletado
+          attributes: ["nome"],
+        },
+      ],
       order: [["data", "DESC"]],
     });
-    return res.json(consumos);
+
+    const resultado = consumos.map((c) => ({
+      id: c.id,
+      nome: c.Medicamento ? c.Medicamento.nome : c.nome, // mantém o nome salvo
+      dose: c.dose,
+      horario: c.horario,
+      usuarioTelefone: c.usuarioTelefone,
+      status: c.status,
+      data: c.data,
+    }));
+
+    return res.json(resultado);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao listar consumos." });
