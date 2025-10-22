@@ -37,7 +37,7 @@ Consumo.belongsTo(Usuario, {
 Medicamento.hasMany(Consumo, {
   foreignKey: "medicamentoId",
   onUpdate: "CASCADE",
-  onDelete: "SET NULL", // Mantém histórico mesmo que o medicamento seja deletado
+  onDelete: "SET NULL", 
 });
 Consumo.belongsTo(Medicamento, {
   foreignKey: "medicamentoId",

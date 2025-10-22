@@ -7,7 +7,7 @@ export const criarUsuario = async (req, res) => {
     if (!nome || !telefone || !data_nascimento) {
       return res.status(400).json({ error: "Campos obrigatórios faltando." });
     }
-    // evita duplicados pelo telefone
+    
     const existing = await Usuario.findOne({ where: { telefone } });
     if (existing) return res.status(409).json({ error: "Telefone já cadastrado." });
 
@@ -20,17 +20,25 @@ export const criarUsuario = async (req, res) => {
 };
 
 // Rota usada para login pelo telefone
-export const obterUsuarioPorTelefone = async (req, res) => {
+export const loginUsuario = async (req, res) => {
   try {
-    const { telefone } = req.params;
-    const user = await Usuario.findOne({ where: { telefone } });
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado." });
+    const { telefone, data_nascimento } = req.body;
+
+    if (!telefone || !data_nascimento)
+      return res.status(400).json({ error: "Telefone e data de nascimento são obrigatórios." });
+
+    const user = await Usuario.findOne({ where: { telefone, data_nascimento } });
+
+    if (!user)
+      return res.status(401).json({ error: "Credenciais inválidas. Verifique o telefone e a data de nascimento." });
+
     return res.json(user);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar usuário." });
+    return res.status(500).json({ error: "Erro ao efetuar login." });
   }
 };
+
 
 export const atualizarUsuario = async (req, res) => {
   try {
