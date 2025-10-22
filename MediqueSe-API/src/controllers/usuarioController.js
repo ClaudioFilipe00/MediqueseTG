@@ -1,4 +1,6 @@
-import { Usuario } from "../models/usuarioModel.js";
+import { Usuario } from "../models/Usuario.js";
+import { Medicamento } from "../models/Medicamento.js";
+
 
 export const criarUsuario = async (req, res) => {
   console.log("REQ BODY:", req.body);
@@ -19,25 +21,26 @@ export const criarUsuario = async (req, res) => {
   }
 };
 
-// Rota usada para login pelo telefone
 export const loginUsuario = async (req, res) => {
   try {
     const { telefone, data_nascimento } = req.body;
 
-    if (!telefone || !data_nascimento)
-      return res.status(400).json({ error: "Telefone e data de nascimento são obrigatórios." });
+    const usuario = await Usuario.findOne({
+      where: { telefone, data_nascimento },
+      include: [{ model: Medicamento }],
+    });
 
-    const user = await Usuario.findOne({ where: { telefone, data_nascimento } });
+    if (!usuario) {
+      return res.status(404).json({ erro: "Usuário não encontrado" });
+    }
 
-    if (!user)
-      return res.status(401).json({ error: "Credenciais inválidas. Verifique o telefone e a data de nascimento." });
-
-    return res.json(user);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro ao efetuar login." });
+    return res.status(200).json(usuario); // ✅ Retorna tudo: nome, telefone e medicamentos
+  } catch (erro) {
+    console.error(erro);
+    return res.status(500).json({ erro: "Erro ao efetuar login" });
   }
 };
+
 
 
 export const atualizarUsuario = async (req, res) => {
