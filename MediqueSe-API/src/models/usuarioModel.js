@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../db/connection.js";
+import { Medicamento } from "./medicamentoModel.js";
+import { Consumo } from "./consumoModel.js";
 
 export const Usuario = sequelize.define("Usuario", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -12,3 +14,6 @@ export const Usuario = sequelize.define("Usuario", {
   createdAt: "criado_em",
   updatedAt: false
 });
+
+Usuario.hasMany(Medicamento, { as: "Medicamentos", foreignKey: "usuarioId", onDelete: "CASCADE", onUpdate: "CASCADE" });
+Usuario.hasMany(Consumo, { as: "Consumos", foreignKey: "usuarioTelefone", sourceKey: "telefone", onDelete: "CASCADE", onUpdate: "CASCADE" });

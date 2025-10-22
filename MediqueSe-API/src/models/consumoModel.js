@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../db/connection.js";
+import { Usuario } from "./usuarioModel.js";
+import { Medicamento } from "./medicamentoModel.js";
 
 export const Consumo = sequelize.define("Consumo", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -7,15 +9,15 @@ export const Consumo = sequelize.define("Consumo", {
   dose: { type: DataTypes.STRING, allowNull: false },
   horario: { type: DataTypes.STRING, allowNull: false },
   usuarioTelefone: { type: DataTypes.STRING, allowNull: false },
-  status: {
-    type: DataTypes.ENUM("Consumido", "Não consumido"),
-    allowNull: false,
-  },
+  status: { type: DataTypes.ENUM("Consumido", "Não consumido"), allowNull: false },
   data: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
-  medicamentoId: { type: DataTypes.INTEGER, allowNull: true }, // permite null
+  medicamentoId: { type: DataTypes.INTEGER, allowNull: true },
 }, {
   tableName: "consumos",
   timestamps: true,
   createdAt: "criado_em",
   updatedAt: false,
 });
+
+Consumo.belongsTo(Usuario, { as: "Usuario", foreignKey: "usuarioTelefone", targetKey: "telefone" });
+Consumo.belongsTo(Medicamento, { as: "Medicamento", foreignKey: "medicamentoId" });
