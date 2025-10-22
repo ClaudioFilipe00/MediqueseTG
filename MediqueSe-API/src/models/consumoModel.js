@@ -19,5 +19,3 @@ export const Consumo = sequelize.define("Consumo", {
   updatedAt: false,
 });
 
-Consumo.belongsTo(Usuario, { as: "Usuario", foreignKey: "usuarioTelefone", targetKey: "telefone" });
-Consumo.belongsTo(Medicamento, { as: "Medicamento", foreignKey: "medicamentoId" });

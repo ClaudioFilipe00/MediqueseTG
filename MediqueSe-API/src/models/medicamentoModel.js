@@ -20,5 +20,4 @@ export const Medicamento = sequelize.define("Medicamento", {
   timestamps: true
 });
 
-Medicamento.belongsTo(Usuario, { as: "Usuario", foreignKey: "usuarioId" });
-Medicamento.hasMany(Consumo, { as: "Consumos", foreignKey: "medicamentoId", onDelete: "SET NULL", onUpdate: "CASCADE" });
+

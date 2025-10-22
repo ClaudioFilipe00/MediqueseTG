@@ -15,5 +15,3 @@ export const Usuario = sequelize.define("Usuario", {
   updatedAt: false
 });
 
-Usuario.hasMany(Medicamento, { as: "Medicamentos", foreignKey: "usuarioId", onDelete: "CASCADE", onUpdate: "CASCADE" });
-Usuario.hasMany(Consumo, { as: "Consumos", foreignKey: "usuarioTelefone", sourceKey: "telefone", onDelete: "CASCADE", onUpdate: "CASCADE" });
