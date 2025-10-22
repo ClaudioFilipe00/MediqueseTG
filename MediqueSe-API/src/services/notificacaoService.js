@@ -1,9 +1,5 @@
 import admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
-
-const serviceAccountPath = path.resolve("./src/firebase-service-account.json");
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+import serviceAccount from "../firebase-service-account.json" assert { type: "json" };
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -22,10 +18,26 @@ export async function enviarNotificacao(token, titulo, corpo) {
 
   try {
     const response = await admin.messaging().send(message);
-    console.log("Notificação enviada:", response);
+    console.log("Notificação enviada com sucesso:", response);
     return response;
   } catch (error) {
     console.error("Erro ao enviar notificação:", error);
+    throw error;
+  }
+}
+
+export async function enviarNotificacaoTodos(tokens, titulo, corpo) {
+  const messages = tokens.map((token) => ({
+    notification: { title: titulo, body: corpo },
+    token,
+  }));
+
+  try {
+    const response = await admin.messaging().sendAll(messages);
+    console.log("Notificações enviadas com sucesso:", response.successCount);
+    return response;
+  } catch (error) {
+    console.error("Erro ao enviar notificações:", error);
     throw error;
   }
 }
