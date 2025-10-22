@@ -2,7 +2,7 @@
 import cron from 'node-cron';
 import { Medicamento } from '../models/medicamentoModel.js';
 import { Usuario } from '../models/usuarioModel.js';
-import { enviarNotificacaoFCM } from './notificationService.js';
+import { enviarNotificacaoFCM } from "./notificacaoService.js";
 
 export function iniciarAgendador() {
   // roda todo minuto
