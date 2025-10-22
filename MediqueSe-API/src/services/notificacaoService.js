@@ -8,4 +8,14 @@ if (!admin.apps.length) {
   });
 }
 
+export function enviarNotificacao(token, mensagem) {
+  return admin.messaging().send({
+    token,
+    notification: {
+      title: mensagem.titulo,
+      body: mensagem.corpo,
+    },
+  });
+}
+
 export default admin;
