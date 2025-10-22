@@ -1,11 +1,7 @@
 import { Usuario } from "../models/usuarioModel.js";
 import { Medicamento } from "../models/medicamentoModel.js";
 
-// Função para converter DD/MM/YYYY -> YYYY-MM-DD
-const formatarDataParaBD = (data) => {
-  const [dia, mes, ano] = data.split("/");
-  return `${ano}-${mes}-${dia}`;
-};
+
 
 export const criarUsuario = async (req, res) => {
   console.log("REQ BODY:", req.body);
@@ -28,33 +24,26 @@ export const criarUsuario = async (req, res) => {
 
 export const loginUsuario = async (req, res) => {
   try {
-    let { telefone, data_nascimento } = req.body;
+    const { telefone, data_nascimento } = req.body;
 
-    if (!telefone || !data_nascimento)
+    if (!telefone || !data_nascimento) {
       return res.status(400).json({ erro: "Telefone e data de nascimento são obrigatórios." });
-
-    data_nascimento = formatarDataParaBD(data_nascimento);
-
-    const usuario = await Usuario.findOne({
-      where: { telefone, data_nascimento },
-      include: [{ model: Medicamento, as: "medicamentos" }],
-      attributes: ["id", "nome", "telefone", "data_nascimento"],
-    });
-
-    if (!usuario) {
-      return res.status(401).json({ erro: "Erro ao efetuar login. Verifique suas credenciais." });
     }
 
-    return res.status(200).json({
-      id: usuario.id,
-      nome: usuario.nome,
-      telefone: usuario.telefone,
-      data_nascimento: usuario.data_nascimento,
-      medicamentos: usuario.medicamentos || [],
+    // Converte data para YYYY-MM-DD
+    const dataFormatada = new Date(data_nascimento).toISOString().split("T")[0];
+
+    const usuario = await Usuario.findOne({
+      where: { telefone, data_nascimento: dataFormatada },
+      include: [{ model: Medicamento, as: "medicamentos" }],
     });
+
+    if (!usuario) return res.status(404).json({ erro: "Usuário não encontrado. Verifique suas credenciais." });
+
+    return res.status(200).json(usuario);
   } catch (erro) {
     console.error(erro);
-    return res.status(500).json({ erro: "Erro ao efetuar login" });
+    return res.status(500).json({ erro: "Erro ao efetuar login." });
   }
 };
 
