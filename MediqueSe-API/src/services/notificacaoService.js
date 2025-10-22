@@ -1,11 +1,9 @@
 import admin from "firebase-admin";
+import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-import serviceAccount from "../firebase-service-account.json" assert { type: "json" };
+const serviceAccountPath = path.resolve("./src/firebase-service-account.json");
+const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -15,11 +13,11 @@ if (!admin.apps.length) {
 
 export async function enviarNotificacao(token, titulo, corpo) {
   const message = {
-    token,
     notification: {
       title: titulo,
       body: corpo,
     },
+    token,
   };
 
   try {
