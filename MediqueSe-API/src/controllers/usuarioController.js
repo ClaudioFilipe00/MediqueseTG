@@ -1,5 +1,5 @@
-import { Usuario } from "../models/Usuario.js";
-import { Medicamento } from "../models/Medicamento.js";
+import { Usuario } from "../models/usuarioModel.js";
+import { Medicamento } from "../models/medicamentoModel.js";
 
 
 export const criarUsuario = async (req, res) => {
