@@ -1,6 +1,6 @@
+// services/notificationService.js
 import admin from './firebaseSetup.js';
 
-// Envia notificação FCM para o token do usuário
 export async function enviarNotificacaoFCM(token, med) {
   const message = {
     token,
@@ -16,10 +16,6 @@ export async function enviarNotificacaoFCM(token, med) {
     },
     android: { priority: 'high', notification: { channelId: 'medicamentos' } },
   };
-
-  try {
-    await admin.messaging().send(message);
-  } catch (err) {
-    console.error('Erro ao enviar notificação FCM:', err);
-  }
+  try { await admin.messaging().send(message); }
+  catch (err) { console.error('Erro ao enviar notificação FCM:', err); }
 }

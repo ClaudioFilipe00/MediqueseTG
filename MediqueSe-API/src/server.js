@@ -7,6 +7,7 @@ import { Consumo } from "./models/consumoModel.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import medicamentoRoutes from "./routes/medicamentoRoutes.js";
 import consumoRoutes from "./routes/consumoRoutes.js";
+import { iniciarAgendador } from './services/scheduler.js';
 
 const app = express();
 app.use(cors());
@@ -63,3 +64,5 @@ sequelize.sync({ alter: true })
   .catch((err) => {
     console.error("Erro ao sincronizar:", err);
   });
+
+  iniciarAgendador();

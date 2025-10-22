@@ -1,127 +1,101 @@
 import { Medicamento } from "../models/medicamentoModel.js";
-import { Usuario } from "../models/usuarioModel.js";
-import { Op } from "sequelize";
-import { enviarNotificacao } from "../services/notificacaoService.js";
+import { Consumo } from "../models/consumoModel.js";
+import { enviarNotificacaoFCM } from "../services/notificacaoService.js";
 
-const diasMap = { DOM: 0, SEG: 1, TER: 2, QUA: 3, QUI: 4, SEX: 5, SAB: 6 };
-
-const agendarNotificacoes = async (med) => {
-  const usuario = await Usuario.findOne({ where: { telefone: med.usuarioTelefone } });
-  if (!usuario?.fcmToken) return;
-
-  const horarios = Array.isArray(med.horarios) ? med.horarios : JSON.parse(med.horarios || "[]");
-  const dias = typeof med.dias === "string" ? JSON.parse(med.dias || "{}") : med.dias;
-
-  const now = new Date();
-
-  for (const horarioStr of horarios) {
-    const [hour, minute] = horarioStr.split(":").map(Number);
-
-    for (const diaKey in dias) {
-      if (!dias[diaKey]) continue;
-
-      const targetDay = diasMap[diaKey];
-      const triggerDate = new Date();
-      triggerDate.setHours(hour, minute, 0, 0);
-      let dayDiff = targetDay - triggerDate.getDay();
-      if (dayDiff < 0 || (dayDiff === 0 && triggerDate <= now)) dayDiff += 7;
-      triggerDate.setDate(triggerDate.getDate() + dayDiff);
-
-      const delay = triggerDate.getTime() - now.getTime();
-      if (delay <= 0) continue;
-
-      setTimeout(() => {
-        enviarNotificacao({
-          token: usuario.fcmToken,
-          nome: med.nome,
-          dose: `${med.dose} ${med.tipo}`,
-          horario: horarioStr,
-          usuarioTelefone: med.usuarioTelefone,
-        });
-      }, delay);
-    }
-  }
-};
-
+// Criar novo medicamento
 export const criarMedicamento = async (req, res) => {
   try {
-    const { nome, nome_medico, dose, tipo, duracao, horarios, dias, usuarioTelefone, continuo } = req.body;
-    if (!nome || !usuarioTelefone) return res.status(400).json({ error: "nome e usuarioTelefone obrigatórios" });
+    const { nome, dose, tipo, duracao, horarios, dias, usuarioTelefone } = req.body;
+    if (!nome || !dose || !tipo || !horarios || !dias || !usuarioTelefone) {
+      return res.status(400).json({ error: "Campos obrigatórios faltando." });
+    }
 
-    const usuario = await Usuario.findOne({ where: { telefone: usuarioTelefone } });
-    if (!usuario) return res.status(400).json({ error: "Usuário não encontrado" });
-
-    const med = await Medicamento.create({
+    const novo = await Medicamento.create({
       nome,
-      nome_medico: nome_medico || null,
-      dose: dose || null,
-      tipo: tipo || null,
-      duracao: continuo ? "Contínuo" : (duracao || null),
-      continuo: !!continuo,
-      horarios: JSON.stringify(horarios || []),
-      dias: JSON.stringify(dias || {}),
+      dose,
+      tipo,
+      duracao,
+      horarios,
+      dias,
       usuarioTelefone,
-      usuarioId: usuario.id,
     });
 
-    await agendarNotificacoes(med);
 
-    return res.status(201).json(med);
+    return res.status(201).json(novo);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao criar medicamento." });
   }
 };
 
-export const atualizarMedicamento = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updates = { ...req.body };
-    if (updates.horarios) updates.horarios = JSON.stringify(updates.horarios);
-    if (updates.dias) updates.dias = JSON.stringify(updates.dias);
-    if (typeof updates.continuo !== "undefined") updates.continuo = !!updates.continuo;
-    if (updates.continuo) updates.duracao = "Contínuo";
-
-    const [n] = await Medicamento.update(updates, { where: { id } });
-    if (!n) return res.status(404).json({ error: "Medicamento não encontrado." });
-
-    const updated = await Medicamento.findByPk(id);
-    await agendarNotificacoes(updated);
-
-    return res.json(updated);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro ao atualizar." });
-  }
-};
-
+// Listar medicamentos por usuário
 export const listarMedicamentosPorUsuario = async (req, res) => {
   try {
-    const { telefone } = req.query;
-    if (!telefone) return res.status(400).json({ error: "telefone query obrigatório" });
+    const { usuarioTelefone } = req.params;
 
-    const usuario = await Usuario.findOne({ where: { telefone } });
-    const whereClause = usuario
-      ? { [Op.or]: [{ usuarioId: usuario.id }, { usuarioTelefone: telefone }] }
-      : { usuarioTelefone: telefone };
+    const medicamentos = await Medicamento.findAll({
+      where: { usuarioTelefone },
+      order: [["createdAt", "DESC"]],
+    });
 
-    const meds = await Medicamento.findAll({ where: whereClause, order: [["nome", "ASC"]] });
-    const parsed = meds.map((m) => ({ ...m.toJSON(), horarios: m.horarios ? JSON.parse(m.horarios) : [], dias: m.dias ? JSON.parse(m.dias) : {} }));
-    return res.json(parsed);
+    return res.json(medicamentos);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao listar medicamentos." });
   }
 };
 
-export const excluirMedicamento = async (req, res) => {
+// Registrar consumo
+export const registrarConsumo = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deleted = await Medicamento.destroy({ where: { id } });
-    if (!deleted) return res.status(404).json({ error: "Medicamento não encontrado." });
-    return res.json({ message: "Medicamento excluído." });
+    const { nome, dose, horario, usuarioTelefone, status } = req.body;
+    if (!nome || !dose || !horario || !usuarioTelefone || !status) {
+      return res.status(400).json({ error: "Campos obrigatórios: nome, dose, horario, usuarioTelefone, status" });
+    }
+
+    const novo = await Consumo.create({ nome, dose, horario, usuarioTelefone, status });
+
+    return res.status(201).json(novo);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro ao excluir." });
+    return res.status(500).json({ error: "Erro ao registrar consumo." });
+  }
+};
+
+// Listar consumo por usuário
+export const listarConsumoPorUsuario = async (req, res) => {
+  try {
+    const { usuarioTelefone } = req.params;
+
+    const consumos = await Consumo.findAll({
+      where: { usuarioTelefone },
+      include: [
+        {
+          model: Medicamento,
+          required: false,
+          attributes: ["nome"],
+        },
+      ],
+      order: [["data", "DESC"]],
+    });
+
+    const resultado = consumos.map((c) => {
+      const medicamentoNome = c.Medicamento && c.Medicamento.nome ? c.Medicamento.nome : null;
+      const nomeFinal = medicamentoNome || (c.nome ? c.nome : "(sem nome)");
+      return {
+        id: c.id,
+        nome: nomeFinal,
+        dose: c.dose,
+        horario: c.horario,
+        usuarioTelefone: c.usuarioTelefone,
+        status: c.status,
+        data: c.data,
+      };
+    });
+
+    return res.json(resultado);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao listar consumos." });
   }
 };
