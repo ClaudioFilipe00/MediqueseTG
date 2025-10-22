@@ -1,4 +1,4 @@
-import admin from './firebaseConfig.js';
+import admin from './firebaseSetup.js';
 
 // Envia notificação FCM para o token do usuário
 export async function enviarNotificacaoFCM(token, med) {
