@@ -1,21 +1,25 @@
-import admin from "firebase-admin";
+import admin from './firebaseConfig.js';
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
-
-export function enviarNotificacao(token, mensagem) {
-  return admin.messaging().send({
+// Envia notificação FCM para o token do usuário
+export async function enviarNotificacaoFCM(token, med) {
+  const message = {
     token,
     notification: {
-      title: mensagem.titulo,
-      body: mensagem.corpo,
+      title: 'Hora do medicamento',
+      body: `Tome seu medicamento: ${med.nome} (${med.dose} ${med.tipo})`,
     },
-  });
-}
+    data: {
+      nome: med.nome,
+      dose: `${med.dose} ${med.tipo}`,
+      horario: med.horario,
+      usuarioTelefone: med.usuarioTelefone,
+    },
+    android: { priority: 'high', notification: { channelId: 'medicamentos' } },
+  };
 
-export default admin;
+  try {
+    await admin.messaging().send(message);
+  } catch (err) {
+    console.error('Erro ao enviar notificação FCM:', err);
+  }
+}
