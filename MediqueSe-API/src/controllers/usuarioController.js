@@ -27,14 +27,26 @@ export const loginUsuario = async (req, res) => {
 
     const usuario = await Usuario.findOne({
       where: { telefone, data_nascimento },
-      include: [{ model: Medicamento }],
+      include: [
+        {
+          model: Medicamento,
+          as: "medicamentos",
+        },
+      ],
+      attributes: ["id", "nome", "telefone", "data_nascimento"],
     });
 
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado" });
     }
 
-    return res.status(200).json(usuario); // ✅ Retorna tudo: nome, telefone e medicamentos
+    return res.status(200).json({
+      id: usuario.id,
+      nome: usuario.nome,
+      telefone: usuario.telefone,
+      data_nascimento: usuario.data_nascimento,
+      medicamentos: usuario.medicamentos || [],
+    });
   } catch (erro) {
     console.error(erro);
     return res.status(500).json({ erro: "Erro ao efetuar login" });
@@ -42,12 +54,11 @@ export const loginUsuario = async (req, res) => {
 };
 
 
-
 export const atualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    // não permite alterar o telefone
+
     if (updates.telefone) delete updates.telefone;
 
     const [n] = await Usuario.update(updates, { where: { id } });
