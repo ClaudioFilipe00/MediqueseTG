@@ -1,7 +1,6 @@
 import { Usuario } from "../models/usuarioModel.js";
 import { Medicamento } from "../models/medicamentoModel.js";
-
-
+import { Op } from "sequelize";
 
 export const criarUsuario = async (req, res) => {
   console.log("REQ BODY:", req.body);
@@ -25,27 +24,35 @@ export const criarUsuario = async (req, res) => {
 export const loginUsuario = async (req, res) => {
   try {
     const { telefone, data_nascimento } = req.body;
-
-    if (!telefone || !data_nascimento) {
+    if (!telefone || !data_nascimento)
       return res.status(400).json({ erro: "Telefone e data de nascimento são obrigatórios." });
-    }
-
-    // Converte data para YYYY-MM-DD
-    const dataFormatada = new Date(data_nascimento).toISOString().split("T")[0];
 
     const usuario = await Usuario.findOne({
-      where: { telefone, data_nascimento: dataFormatada },
+      where: {
+        telefone,
+        data_nascimento: {
+          [Op.eq]: data_nascimento, // garante comparação exata
+        },
+      },
       include: [{ model: Medicamento, as: "medicamentos" }],
     });
 
-    if (!usuario) return res.status(404).json({ erro: "Usuário não encontrado. Verifique suas credenciais." });
+    if (!usuario)
+      return res.status(401).json({ erro: "Erro ao efetuar login. Verifique suas credenciais." });
 
-    return res.status(200).json(usuario);
+    return res.status(200).json({
+      id: usuario.id,
+      nome: usuario.nome,
+      telefone: usuario.telefone,
+      data_nascimento: usuario.data_nascimento,
+      medicamentos: usuario.medicamentos || [],
+    });
   } catch (erro) {
     console.error(erro);
-    return res.status(500).json({ erro: "Erro ao efetuar login." });
+    return res.status(500).json({ erro: "Erro ao efetuar login" });
   }
 };
+
 
 export const atualizarUsuario = async (req, res) => {
   try {
