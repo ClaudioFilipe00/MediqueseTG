@@ -6,7 +6,6 @@ export const Usuario = sequelize.define("Usuario", {
   nome: { type: DataTypes.STRING(100), allowNull: false },
   telefone: { type: DataTypes.STRING(20), allowNull: false, unique: true },
   data_nascimento: { type: DataTypes.DATEONLY, allowNull: false },
-  fcmToken: { type: DataTypes.STRING, allowNull: true },
 }, {
   tableName: "usuarios",
   timestamps: true,

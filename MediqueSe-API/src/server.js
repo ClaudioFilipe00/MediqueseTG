@@ -7,12 +7,11 @@ import { Consumo } from "./models/consumoModel.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import medicamentoRoutes from "./routes/medicamentoRoutes.js";
 import consumoRoutes from "./routes/consumoRoutes.js";
-import { iniciarAgendador } from './services/scheduler.js';
+import pushRoutes from "./routes/pushRoutes.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
 
 Usuario.hasMany(Medicamento, {
   foreignKey: "usuarioId",
@@ -22,7 +21,6 @@ Usuario.hasMany(Medicamento, {
 Medicamento.belongsTo(Usuario, {
   foreignKey: "usuarioId",
 });
-
 
 Usuario.hasMany(Consumo, {
   foreignKey: "usuarioTelefone",
@@ -38,17 +36,17 @@ Consumo.belongsTo(Usuario, {
 Medicamento.hasMany(Consumo, {
   foreignKey: "medicamentoId",
   onUpdate: "CASCADE",
-  onDelete: "SET NULL", 
+  onDelete: "SET NULL", // Mantém histórico mesmo que o medicamento seja deletado
 });
 Consumo.belongsTo(Medicamento, {
   foreignKey: "medicamentoId",
   onDelete: "SET NULL",
 });
 
-
 app.use("/usuarios", usuarioRoutes);
 app.use("/medicamentos", medicamentoRoutes);
 app.use("/consumo", consumoRoutes);
+app.use("/push", pushRoutes);
 
 // Rota de teste
 app.get("/ping", (req, res) => res.send("pong"));
@@ -64,5 +62,3 @@ sequelize.sync({ alter: true })
   .catch((err) => {
     console.error("Erro ao sincronizar:", err);
   });
-
-  iniciarAgendador();
