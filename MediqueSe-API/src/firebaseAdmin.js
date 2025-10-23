@@ -17,7 +17,9 @@ export const sendPushNotification = async (token, data = {}) => {
   try {
     await admin.messaging().send({
       token,
-      android: { priority: "high" }, // data-only
+      android: {
+        priority: "high",
+      },
       data: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])),
     });
     console.log("Notificação enviada com sucesso!");
