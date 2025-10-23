@@ -7,19 +7,23 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
-export const sendPushNotification = async (token, title, body, data = {}) => {
+export const sendPushNotification = async (token, data = {}) => {
   try {
-    await admin.messaging().send({
+    const message = {
       token,
-      notification: { title, body },
+      android: { priority: "high" },
       data: Object.fromEntries(
         Object.entries(data).map(([k, v]) => [k, String(v)])
       ),
-    });
+    };
+
+    await admin.messaging().send(message);
     console.log("Notificação enviada com sucesso!");
   } catch (err) {
     console.error("Erro ao enviar notificação:", err);
