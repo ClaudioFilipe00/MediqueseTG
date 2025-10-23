@@ -17,3 +17,5 @@ router.post("/push", async (req, res) => {
 
   res.json({ message: "Notificação enviada" });
 });
+
+export default router;
