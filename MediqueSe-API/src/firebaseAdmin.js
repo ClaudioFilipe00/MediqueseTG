@@ -1,29 +1,29 @@
 import admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
 
-const serviceAccountPath = path.resolve("./serviceAccountKey.json"); // chave do FCM
-
-if (!fs.existsSync(serviceAccountPath)) {
-  console.error("Coloque o arquivo serviceAccountKey.json na raiz do backend!");
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  console.error("⚠️ Variável FIREBASE_SERVICE_ACCOUNT não encontrada!");
   process.exit(1);
 }
 
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccountPath),
+  credential: admin.credential.cert(serviceAccount),
 });
 
 export const sendPushNotification = async (token, title, body, data = {}) => {
   try {
-    const message = {
+    await admin.messaging().send({
       token,
       notification: { title, body },
-      data,
-      android: { priority: "high" },
-      apns: { headers: { "apns-priority": "10" } },
-    };
-    await admin.messaging().send(message);
+      data: Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, String(v)])
+      ),
+    });
+    console.log("Notificação enviada com sucesso!");
   } catch (err) {
-    console.error("Erro ao enviar push:", err);
+    console.error("Erro ao enviar notificação:", err);
   }
 };
+
+export default admin;
