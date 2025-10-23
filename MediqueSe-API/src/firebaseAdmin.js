@@ -12,22 +12,21 @@ if (!admin.apps.length) {
     credential: admin.credential.cert(serviceAccount),
   });
 }
-
 export const sendPushNotification = async (token, data = {}) => {
   try {
-    const message = {
+    await admin.messaging().send({
       token,
-      android: { priority: "high" },
-      data: Object.fromEntries(
-        Object.entries(data).map(([k, v]) => [k, String(v)])
-      ),
-    };
-
-    await admin.messaging().send(message);
+      android: {
+        priority: "high",
+        notification: { channelId: "medicamentos" } // apenas para Android
+      },
+      data: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)]))
+    });
     console.log("Notificação enviada com sucesso!");
   } catch (err) {
     console.error("Erro ao enviar notificação:", err);
   }
 };
+
 
 export default admin;
