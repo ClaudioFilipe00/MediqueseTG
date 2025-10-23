@@ -13,6 +13,7 @@ export const Medicamento = sequelize.define("Medicamento", {
   horarios: { type: DataTypes.TEXT, allowNull: true }, // JSON string
   dias: { type: DataTypes.TEXT, allowNull: true }, // JSON string
 
+  // Mantemos o telefone (compatibilidade) e adicionamos FK usuarioId
   usuarioTelefone: { type: DataTypes.STRING, allowNull: true },
   usuarioId: { type: DataTypes.INTEGER, allowNull: true },
 }, {
